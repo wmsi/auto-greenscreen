@@ -110,7 +110,7 @@ def main():
                 time.sleep(3)
             else:
                 # Update our values because we know they're correct:
-                pathFinal, pathPNG = recordImageReturned
+                pathFinal, pathPNG, pathUSB = recordImageReturned
                 
                 # Give them an option and update the screen:
                 screen.fill((169, 169, 169))
@@ -139,8 +139,9 @@ def main():
                         pygame.display.update()
                         try:
                             os.remove(pathFinal)
+                            os.remove(pathUSB)
                         except:
-                            print "There was an error removing the image from", pathFinal, ". Please try to remove it yourself."
+                            print "There was an error removing the image from", pathFinal, "or", pathUSB, " Please try to remove it yourself."
                         time.sleep(1)
 
         # Exit documentation program and take to homescreen when BCM pin 13 is low:

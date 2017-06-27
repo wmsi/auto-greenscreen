@@ -96,29 +96,24 @@ def recordImage(i, threshold, webcam, screen, font):
         # It seems that we're struggling to save the file elegantly, so let's just copy it from /tmp:
         # (pathSave is the location that we're going to save the file:)
         pathSave = "/home/pi/Photos/"
-        # We have to find the USB device, so:
-        pathUSB = "/media/pi/" + os.listdir("/media/pi")[0] + "/"
         imageName = "%(1)s_%(2)s_%(3)s.png" % {"1": hi,"2": ti,"3" : i}
         pathFinal = pathSave + imageName
-        print "Copying image from", pathPNG, "to", pathSave
+        print "Copying image from", pathPNG, "to", pathFinal
         copy(pathPNG, pathFinal)
-        print "Copying image from", pathPNG, "to", pathUSB
+        # The below should be in a try block in case it fails:
+        # We have to find the USB device, so:
         try:
+            pathUSB = "/media/pi/" + os.listdir("/media/pi")[0] + "/" + imageName
+            print "Copying image from", pathPNG, "to", pathUSB
             copy(pathPNG, pathUSB)
         except:
             print "There was an issue copying to USB."
-
-        # We seem to be having an issue that the file isn't copying or something,
-        # BUT IT ACTUALLY IS!?  (It looks like a time issue.)  While it's copying
-        # then, we'll just wait:
-        while imageName not in os.listdir(pathSave):
-            time.sleep(0.05)
 
         # Numerate our numerator so we can create unique file names...
         i = i+1
             
         # Return exactly what/where we saved the file, so the user can delete it if they want...
-        return pathFinal, pathPNG
+        return pathFinal, pathPNG, pathUSB
         
     # Return because we have nothing left to do...
     return None
