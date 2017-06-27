@@ -10,3 +10,6 @@ The dependencies for this project are listed as all the packages imported into P
 * Others as listed in the main file.
 
 Goodluck, and please feel free to contact me or us at WMSI if you have questions or need help.
+
+# Documentation
+I sincerely hope the in-script documentation is thorough enough for you to understand and use it.  If not, please just yell at someone, and I'll try to update this or serve whatever you may need.
