@@ -74,6 +74,16 @@ def main():
         display_msg = "Press the button to take pictures!"
         text2 = font.render(display_msg, True, (0,0,255))
         screen.blit(text2, (220, 220))
+        
+        # Print stars where the script will try to detect the corners:
+        star = "*"
+        star = font.render(star, True, (255, 0, 0))
+        # Blit the star on all 4 locations where we sample:
+        screen.blit(star, (100, 100))
+        screen.blit(star, (700, 100))
+        screen.blit(star, (100, 380))
+        screen.blit(star, (700, 380))
+        
         # Update the display so stuff actually shows...
         pygame.display.update()
 
