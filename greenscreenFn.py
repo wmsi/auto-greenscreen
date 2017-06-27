@@ -142,8 +142,7 @@ def HSVMean(PilHsvImage):
     # Let's make a list of the data so it's easier to use:
     pixList = [pix1, pix2, pix3, pix4]
     
-    # For loop to iterate through each chosen pixel, as above, and counter values to count the total:
-    numerator = 0
+    # For loop to iterate through each chosen pixel, as above:
     H = 0
     S = 0
     V = 0
@@ -156,9 +155,9 @@ def HSVMean(PilHsvImage):
     # Now we can compute the mean of the valid HSV values:
     # use Try for the case in which each corner is invalid...
     try:
-        H = H / numerator
-        S = S / numerator
-        V = V / numerator
+        H = H / 4
+        S = S / 4
+        V = V / 4
     except:
         return None
     
