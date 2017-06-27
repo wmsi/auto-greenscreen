@@ -96,10 +96,17 @@ def recordImage(i, threshold, webcam, screen, font):
         # It seems that we're struggling to save the file elegantly, so let's just copy it from /tmp:
         # (pathSave is the location that we're going to save the file:)
         pathSave = "/home/pi/Photos/"
+        # We have to find the USB device, so:
+        pathUSB = "/media/pi/" + os.listdir("/media/pi")[0] + "/"
         imageName = "%(1)s_%(2)s_%(3)s.png" % {"1": hi,"2": ti,"3" : i}
         pathFinal = pathSave + imageName
         print "Copying image from", pathPNG, "to", pathSave
         copy(pathPNG, pathFinal)
+        print "Copying image from", pathPNG, "to", pathUSB
+        try:
+            copy(pathPNG, pathUSB)
+        except:
+            print "There was an issue copying to USB."
 
         # We seem to be having an issue that the file isn't copying or something,
         # BUT IT ACTUALLY IS!?  (It looks like a time issue.)  While it's copying
