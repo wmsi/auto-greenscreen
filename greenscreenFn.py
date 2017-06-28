@@ -13,7 +13,6 @@ import os
 import pygame
 import pygame.camera
 import datetime
-import time
 from PIL import Image
 from PIL import ImageFilter
 from shutil import copy

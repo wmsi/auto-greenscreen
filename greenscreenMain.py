@@ -59,8 +59,8 @@ def main():
 
     # A font to use:
     font = pygame.font.Font(None, 25)
-	# Another font to use that's a bit bigger:
-	stars = pygame.font.Font(None, 50)
+    # Another font to use that's a bit bigger:
+    stars = pygame.font.Font(None, 50)
     
     # A numerating value for the images:
     i = 0
@@ -146,10 +146,19 @@ def main():
                             print "There was an error removing the image from", pathFinal, "or", pathUSB, " Please try to remove it yourself."
                         time.sleep(1)
 
-        # Exit documentation program and take to homescreen when BCM pin 13 is low:
-        input_state3 = GPIO.input(13)
-        if input_state3 == False:
+        # Exit documentation program and take to homescreen when escape is hit:
+        events = pygame.event.get()
+        keyboardInteractions = []
+        for key in events:
+            if key.type == 2 or key.type == 3:
+                keyboardInteractions.append(key)
+        keys = []
+        for keyHit in keyboardInteractions:
+            if keyHit.__dict__['key'] == 27:
+                keys.append(27)
         
+        # Now that we know what keys were hit, we can initiate an if statement:
+        if 27 in keys:
             # Go ahead and thank them...
             screen.fill((0,0,0))
             thank_you = "Thanks for your pictures! Don't forget to upload new photos from thumb drive!"
