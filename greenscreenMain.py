@@ -75,7 +75,10 @@ def main():
         # Tell the person how to take a picture...
         display_msg = "Press the button to take pictures!"
         text2 = font.render(display_msg, True, (0,0,255))
-        screen.blit(text2, (220, 220))
+        text2rect = text2.get_rect()
+        text2rect.centerx = screen.get_rect().centerx
+        text2rect.centery = screen.get_rect().centery
+        screen.blit(text2, text2rect)
         
         # Print stars where the script will try to detect the corners:
         star = "*"
@@ -106,7 +109,10 @@ def main():
                 screen.blit(imagen, (0,0))
                 display_msg = "Couldn't detect your greenscreen!"
                 text2 = font.render(display_msg, True, (255, 0, 0))
-                screen.blit(text2, (220, 220))
+                text2rect = text2.get_rect()
+                text2rect.centerx = screen.get_rect().centerx
+                text2rect.centery = screen.get_rect().centery
+                screen.blit(text2, text2rect)
                 # Update the display so stuff actually shows...
                 pygame.display.update()
                 time.sleep(3)
@@ -120,7 +126,10 @@ def main():
                 screen.blit(imagen, (0,0))
                 delete_option = "Press button again to delete?"
                 text4 = font.render(delete_option, True, (255,255,255))
-                screen.blit(text4, (220, 220))
+                text4rect = text4.get_rect()
+                text4rect.centerx = screen.get_rect().centerx
+                text4rect.centery = screen.get_rect().centery
+                screen.blit(text4, text4rect)
                 pygame.display.update()
 					
                 # Start timing so we can make sure we wait long enough for a response:
@@ -137,7 +146,10 @@ def main():
                         screen.blit(imagen, (0,0))
                         message = "Deleting image..."
                         message = font.render(message, True, (255,255,255))
-                        screen.blit(message, (220, 220))
+                        messagerect = message.get_rect()
+                        messagerect.centerx = screen.get_rect().centerx
+                        messagerect.centery = screen.get_rect().centery
+                        screen.blit(message, messagerect)
                         pygame.display.update()
                         try:
                             os.remove(pathFinal)

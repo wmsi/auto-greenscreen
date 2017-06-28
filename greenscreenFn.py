@@ -54,7 +54,10 @@ def recordImage(i, threshold, webcam, screen, font):
     screen.blit(imagen, (0,0))
     message = "Saving and processing image, please wait..."
     message = font.render(message, True, (72, 118, 255))
-    screen.blit(message, (220, 220))
+    messagerect = message.get_rect()
+    messagerect.centerx = screen.get_rect().centerx
+    messagerect.centery = screen.get_rect().centery
+    screen.blit(message, messagerect)
     pygame.display.update()
     
     # Now we can open the image with PIL, and convert it to RGBA AND HSV:
