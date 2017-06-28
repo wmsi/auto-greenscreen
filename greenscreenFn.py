@@ -95,7 +95,7 @@ def recordImage(i, threshold, webcam, screen, font):
 
         # It seems that we're struggling to save the file elegantly, so let's just copy it from /tmp:
         # (pathSave is the location that we're going to save the file:)
-        pathSave = "/home/pi/Photos/"
+        pathSave = "/home/pi/Pictures/"
         imageName = "%(1)s_%(2)s_%(3)s.png" % {"1": hi,"2": ti,"3" : i}
         pathFinal = pathSave + imageName
         print "Copying image from", pathPNG, "to", pathFinal
