@@ -166,7 +166,7 @@ def main():
                 keyboardInteractions.append(key)
         keys = []
         for keyHit in keyboardInteractions:
-            if keyHit.__dict__['key'] == 27:
+            if keyHit.dict['key'] == 27:
                 keys.append(27)
         
         # Now that we know what keys were hit, we can initiate an if statement:
