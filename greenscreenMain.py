@@ -59,6 +59,8 @@ def main():
 
     # A font to use:
     font = pygame.font.Font(None, 25)
+	# Another font to use that's a bit bigger:
+	stars = pygame.font.Font(None, 50)
     
     # A numerating value for the images:
     i = 0
@@ -77,7 +79,7 @@ def main():
         
         # Print stars where the script will try to detect the corners:
         star = "*"
-        star = font.render(star, True, (255, 0, 0))
+        star = stars.render(star, True, (255, 0, 0))
         # Blit the star on all 4 locations where we sample:
         screen.blit(star, (100, 100))
         screen.blit(star, (700, 100))
@@ -130,7 +132,7 @@ def main():
                     input_state2 = GPIO.input(16)
                     if input_state2 == False:
                         isDeleted = True
-                        print "Deleting image from", pathFinal
+                        print "Deleting image from", pathFinal, 'and', pathUSB
                         screen.fill((169, 169, 169))
                         screen.blit(imagen, (0,0))
                         message = "Deleting image..."
