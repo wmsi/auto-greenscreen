@@ -9,6 +9,7 @@ Version 1.Git
 
 See greenscreenMain.py for more details.
 """
+
 import os
 import pygame
 import pygame.camera
@@ -16,6 +17,8 @@ import datetime
 from PIL import Image
 from PIL import ImageFilter
 from shutil import copy
+import RPi.GPIO as GPIO
+import time
 
 """
 The main image capture and processing function.
@@ -26,7 +29,7 @@ and then saves it as a .PNG again to a certain path.
 
 This function returns only the location where it saved the final image AND where it saved the .PNG (/tmp/image.png).
 """
-def recordImage(i, threshold, webcam, screen, font):
+def getImage(i, threshold, webcam, surface, font, refPoints):
     # Date-time strings for naming:
     hi = str(datetime.datetime.now().date())
     hi = hi.replace(".", "_")
@@ -51,13 +54,13 @@ def recordImage(i, threshold, webcam, screen, font):
     pygame.image.save(imagen, pathJPG)
 
     # Display the images we just took...
-    screen.blit(imagen, (0,0))
+    surface.blit(imagen, (0,0))
     message = "Saving and processing image, please wait..."
     message = font.render(message, True, (72, 118, 255))
     messagerect = message.get_rect()
-    messagerect.centerx = screen.get_rect().centerx
-    messagerect.centery = screen.get_rect().centery
-    screen.blit(message, messagerect)
+    messagerect.centerx = surface.get_rect().centerx
+    messagerect.centery = surface.get_rect().centery
+    surface.blit(message, messagerect)
     pygame.display.update()
     
     # Now we can open the image with PIL, and convert it to RGBA AND HSV:
@@ -68,8 +71,8 @@ def recordImage(i, threshold, webcam, screen, font):
     imgRGBA = imgRGBA.convert("RGBA")
     imgHSV = imgRGBA.convert("HSV")
     
-    # Let's use our HSVMean() function to identify the approximate color of the green screen:
-    hsvData = HSVMean(imgHSV)
+    # Let's use our getColorMean() function to identify the approximate color of the green screen:
+    hsvData = getColorMean(imgHSV, refPoints)
     
     # Check the type to make sure the function worked:
     if hsvData == None:
@@ -125,24 +128,22 @@ def recordImage(i, threshold, webcam, screen, font):
 A function that finds 4 corner-ish pixels of an image, see if they're about green, and then if they are,
 averages them to find the approximate color of the green screen.
 
-This fucntion takes a PIL HSV image (surface).
+This fucntion takes a PIL HSV image (surface) and a list of points to use as reference:
 """
-def HSVMean(PilHsvImage):
+def getColorMean(PilHsvImage, refPoints):
     # Let's see how big the image is and make sure it's big enough...
     width, height = PilHsvImage.size
     if (width < 101) or (height < 101):
         return None
+
+    # Create a list to store the pixel data and a numerator to properly take the avg:
+    pixList = []
+    numerator = 0
         
-    # Identify how we're indexing the far corners:1
-    negWidth = width - 100
-    negHeight = height - 100
-    pix1 = PilHsvImage.getpixel((100, 100))
-    pix2 = PilHsvImage.getpixel((negWidth, 100))
-    pix3 = PilHsvImage.getpixel((100, negHeight))
-    pix4 = PilHsvImage.getpixel((negWidth, negHeight))
-    
-    # Let's make a list of the data so it's easier to use:
-    pixList = [pix1, pix2, pix3, pix4]
+    # Identify how we're indexing the far corners:
+    for point in refPoints:
+        pixList.append(PilHsvImage.getpixel(point))
+        numerator += 1
     
     # For loop to iterate through each chosen pixel, as above:
     H = 0
@@ -157,11 +158,126 @@ def HSVMean(PilHsvImage):
     # Now we can compute the mean of the valid HSV values:
     # use Try for the case in which each corner is invalid...
     try:
-        H = H / 4
-        S = S / 4
-        V = V / 4
+        H = H / numerator
+        S = S / numerator
+        V = V / numerator
     except:
         return None
     
     # And now we can return:
     return H, S, V
+
+"""
+A function to allow the user to choose greenspace.
+
+Takes a Pygame webcam, (what is imagen in the Main file,) a star font, and a Pygame screen
+object.  Returns 4 tuples of pixels that are 'known' to be green in a list.
+
+This function was born primarily out of the main function in greenscreenMain.py,
+so if you don't get how it works, look there first.
+
+NOTE: PiGPIO must already be initialized!
+"""
+def getReferencePoints(surface, webcam, font, starFont, controlPin):
+    # A control variable to see if we should close; initialize to False as we
+    # want to start the loop, but assume it's going to be the last time they run it.
+    # (See how this is used at the end of the while loops.)
+    shouldClose = False
+    while shouldClose == False:
+        # Tuples of star locations will be stored in this list:
+        starLocations = []
+        while len(starLocations) < 4:
+            # Take an image and display it in the upper right hand corner:
+            imagen = webcam.get_image()
+            surface.blit(imagen, (0, 0))
+            
+            # Tell the user what to do:
+            message = "Choose 4 points that are green for reference, or press button to cancel."
+            color = (0, 0, 255)
+            setText(surface, font, message, color)
+            
+            # If the user has yet chosen stars, go ahead and display them:
+            if len(starLocations) > 0:
+                for starPoint in starLocations:
+                    setText(surface, starFont, '*', (255, 0, 0), starPoint)
+                    
+            # Update the display:
+            pygame.display.update()
+            
+            # Now we can get events and see if anything has happened:
+            events = pygame.events.get()
+            for event in events:
+                # If the user has DEclicked: (mouse button up,):
+                if event.type == 5:
+                    starLocations.append(event.dict['pos'])
+                    break
+                
+            # See if the button was hit, (again, it's a low-active pin, so False means it was triggered):
+            if GPIO.input(controlPin) == False:
+                return None
+            
+            time.sleep(0.005)
+        
+        # Now we should show the user the points they chose.
+        
+        # Change value of the control var because we assume the user wants to close:
+        shouldClose = True
+        
+        # Initiate a time keeping var:
+        time_start = time.time()
+        while (time.time() - time_start < 5) and shouldClose == True:
+            # Take an image and display it in the upper right hand corner:
+            imagen = webcam.get_image()
+            surface.blit(imagen, (0, 0))
+            message = "Verify chosen points; press button to reselect."
+            color = (0, 0, 255)
+            setText(surface, font, message, color)
+            
+            # Display each point:
+            for starPoint in starLocations:
+                setText(surface, starFont, '*', (255, 0, 0), starPoint)
+            
+            # Check if they hit the button:
+            if GPIO.input(controlPin) == False:
+                shouldClose = False
+                
+            time.sleep(0.005)
+    
+    # The while loop terminated because shouldClose == True:
+    return starLocations
+        
+        
+    
+"""
+A function that prints a message in some color at the center of the screen.
+It then returns the screen object.
+
+Takes a surface to print on, a font to render in, a message (str) to render,
+and an RGB tuple value for the color.  Can also accept a location value, which
+will place the object at that location.
+
+Types:
+    surface is a pygame.display.Display type
+    font is a pygame.font.Font type
+    message is a str.
+    color is a tuple (R, G, B)
+    location is a tuple (x, y)
+"""
+def setText(surface, font, message, color, location = None):
+    # If they haven't provided a location, we'll assume they want it centered:
+    if location == None:
+        messageRendered = font.render(message, True, color)
+        messageLoc = messageRendered.get_rect()
+        messageLoc.centerx = surface.get_rect().centerx
+        messageLoc.centery = surface.get_rect().centery
+        surface.blit(messageRendered, messageLoc)
+        return
+    # They have provided a location, so we'll go ahead and place the object there:
+    else:
+        messageRendered = font.render(message, True, color)
+        messageLoc = messageRendered.get_rect()
+        messageLoc.centerx = location[0]
+        messageLoc.centery = location[1]
+        surface.blit(messageRendered, messageLoc)
+        surface.blit(messageRendered, messageLoc)
+        return
