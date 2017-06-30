@@ -302,6 +302,7 @@ Takes a surface, the path to the official, source-rendered image, (what getImage
 and a list of strings indicating where the images are saved.
 """
 def delImage(surface, font, pathOfficial, listOfPathOthers):
+    surface.fill((169, 169, 169))
     imagen = pygame.image.load(pathOfficial)
     surface.blit(imagen, (0, 0))
     message = "Deleting image..."
@@ -312,6 +313,7 @@ def delImage(surface, font, pathOfficial, listOfPathOthers):
     setText(surface, font, message, color)
     for file in listOfPathOthers:
         try:
+            print "Deleting photo from", file
             os.remove(file)
         except:
             print "There was an error removing the file at", file

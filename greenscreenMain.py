@@ -127,6 +127,7 @@ def main():
                 time_start = time.time()
                 isDeleted = False
                 while (time.time() - time_start < 5) and isDeleted == False:
+                    screen.fill((169, 169, 169))
                     # Display the image just taken...
                     imagen = pygame.image.load(recordedImage[0])
                     screen.blit(imagen, (0, 0))
