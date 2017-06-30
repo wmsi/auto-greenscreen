@@ -248,7 +248,7 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
             if GPIO.input(controlPin) == False:
                 shouldClose = False
                 surface.blit(imagen, (0, 0))
-                message = "Restarting, please wait..."
+                message = "Defaulting reference points and closing, please wait..."
                 color = (255, 255, 255)
                 setText(surface, font, message, color)
                 pygame.display.update()
@@ -307,6 +307,7 @@ def delImage(surface, font, pathOfficial, listOfPathOthers):
     surface.blit(imagen, (0, 0))
     message = "Deleting image..."
     color = (255, 255, 255)
+    setText(surface, font, message, color)
     pygame.display.update()
     
     # We want to use the default value of font, so we have to do this:
