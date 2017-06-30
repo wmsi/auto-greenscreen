@@ -134,6 +134,9 @@ def main():
                     color = (255, 255, 255)
                     greenscreenFn.setText(screen, font, message, color)
                     
+                    # Update the display:
+                    pygame.display.update()
+                    
                     # Sleep so we don't kill anything:
                     time.sleep(0.005)
                     
