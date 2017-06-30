@@ -213,7 +213,7 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
             # See if the button was hit, (again, it's a low-active pin, so False means it was triggered):
             if GPIO.input(controlPin) == False:
                 surface.blit(imagen, (0, 0))
-                message = "Restarting, please wait..."
+                message = "Defaulting reference points and closing, please wait..."
                 color = (255, 255, 255)
                 setText(surface, font, message, color)
                 pygame.display.update()
@@ -248,7 +248,7 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
             if GPIO.input(controlPin) == False:
                 shouldClose = False
                 surface.blit(imagen, (0, 0))
-                message = "Defaulting reference points and closing, please wait..."
+                message = "Restarting, please wait..."
                 color = (255, 255, 255)
                 setText(surface, font, message, color)
                 pygame.display.update()
