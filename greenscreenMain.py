@@ -145,6 +145,7 @@ def main():
                             if path != None:
                                 paths.append(path)
                         greenscreenFn.delImage(screen, font, recordedImage[0], paths)
+                        time.sleep(5)
 
         # Exit documentation program and take to homescreen when escape is hit:
         events = pygame.event.get()

@@ -241,6 +241,11 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
             # Check if they hit the button:
             if GPIO.input(controlPin) == False:
                 shouldClose = False
+                surface.blit(imagen, (0, 0))
+                message = "Restarting, please wait..."
+                color = (255, 255, 255)
+                setText(surface, font, message, color)
+                time.sleep(5)
                 
             time.sleep(0.005)
     
