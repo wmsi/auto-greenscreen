@@ -100,11 +100,11 @@ def getImage(i, threshold, webcam, surface, font, refPoints):
 
         # It seems that we're struggling to save the file elegantly, so let's just copy it from /tmp:
         # (pathSave is the location that we're going to save the file:)
-        pathSave = "/home/pi/Pictures/"
         imageName = "%(1)s_%(2)s_%(3)s.png" % {"1": hi,"2": ti,"3" : i}
-        pathFinal = pathSave + imageName
-        print "Copying image from", pathPNG, "to", pathFinal
-        copy(pathPNG, pathFinal)
+        # Start defining some of the other names:
+        pathLocal = "/home/pi/Pictures/" + imageName
+        print "Copying image from", pathPNG, "to", pathLocal
+        copy(pathPNG, pathLocal)
         # The below should be in a try block in case it fails:
         # We have to find the USB device, so:
         try:
@@ -113,12 +113,10 @@ def getImage(i, threshold, webcam, surface, font, refPoints):
             copy(pathPNG, pathUSB)
         except:
             print "There was an issue copying to USB."
-
-        # Numerate our numerator so we can create unique file names...
-        i = i+1
+            return pathPNG, pathLocal, None
             
         # Return exactly what/where we saved the file, so the user can delete it if they want...
-        return pathFinal, pathPNG, pathUSB
+        return pathPNG, pathLocal, pathUSB
         
     # Return because we have nothing left to do...
     return None
@@ -205,7 +203,7 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
             pygame.display.update()
             
             # Now we can get events and see if anything has happened:
-            events = pygame.events.get()
+            events = pygame.event.get()
             for event in events:
                 # If the user has DEclicked: (mouse button up,):
                 if event.type == 5:
@@ -237,6 +235,9 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
             for starPoint in starLocations:
                 setText(surface, starFont, '*', (255, 0, 0), starPoint)
             
+            # Update the display:
+            pygame.display.update()
+            
             # Check if they hit the button:
             if GPIO.input(controlPin) == False:
                 shouldClose = False
@@ -263,7 +264,7 @@ Types:
     color is a tuple (R, G, B)
     location is a tuple (x, y)
 """
-def setText(surface, font, message, color, location = None):
+def setText(surface, font = pygame.font.Font(None, 25), message, color, location = None):
     # If they haven't provided a location, we'll assume they want it centered:
     if location == None:
         messageRendered = font.render(message, True, color)
@@ -281,3 +282,25 @@ def setText(surface, font, message, color, location = None):
         surface.blit(messageRendered, messageLoc)
         surface.blit(messageRendered, messageLoc)
         return
+
+"""
+A function to delete files from given directories.
+
+Takes a surface, the path to the official, source-rendered image, (what getImage returns)
+and a list of strings indicating where the images are saved.
+"""
+def delImage(surface, font, pathOfficial, listOfPathOthers):
+    imagen = pygame.image.load(pathOfficial)
+    surface.blit(imagen, (0, 0))
+    message = "Deleting image..."
+    color = (255, 255, 255)
+    # We want to use the default value of font, so we have to do this:
+    setText(surface, font, message, color)
+    for file in pathOthers:
+        try:
+            os.remove(file)
+        except:
+            print "There was an error removing the file at", file
+    return
+        
+    

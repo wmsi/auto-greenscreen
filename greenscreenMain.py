@@ -82,13 +82,12 @@ def main():
 
     # The main loop to display images:
     while True:
-        # Take the picture...
-        imagen = webcam.get_image()
-
-        # Display the image...
-        screen.blit(imagen, (0,0))
-        # And set background to black:
+        # Set background to black:
         screen.fill((0, 0, 0))
+        
+        # Take an image and display it:
+        imagen = webcam.get_image()
+        screen.blit(imagen, (0,0))
 
         # Tell the person how to take a picture...
         message = "Press the button to take pictures!"
@@ -108,15 +107,12 @@ def main():
 
         # Big pushbutton to take picture:
         if GPIO.input(controlPin) == False:
-            # Capture an image, as they pressed the button...
-            # (pathSave is the only returned value, telling us where the image was saved.)
-            recordImageReturned = greenscreenFn.getImage(i, threshold, webcam, screen, font, refPoints)
-            
-            # Numerate our numerator:
+            # Capture an image, as they pressed the button, and numerate the numerator:
+            recordedImage = greenscreenFn.getImage(i, threshold, webcam, screen, font, refPoints)
             i += 1
             
             # We have to process what recordImage returned, so let's look at it:
-            if recordImageReturned == None:
+            if recordedImage == None:
                 # We should display a screen or something telling them that we couldn't detect the greenscreen...
                 imagen = webcam.get_image()
                 screen.blit(imagen, (0,0))
@@ -126,43 +122,30 @@ def main():
                 # Update the display so stuff actually shows...
                 pygame.display.update()
                 time.sleep(3)
+            
+            # The script was able to find the greenscreen:
             else:
-                # Update our values because we know they're correct:
-                pathFinal, pathPNG, pathUSB = recordImageReturned
-                
-                # Give them an option and update the screen; we'll display a grey
-                # background so they know what's transparent now:
-                screen.fill((169, 169, 169))
-                imagen = pygame.image.load(pathPNG)
-                screen.blit(imagen, (0,0))
-                message = "Press button again to delete?"
-                color = (255,255,255)
-                greenscreenFn.setText(screen, font, message, color)
-                pygame.display.update()
-					
-                # Start timing so we can make sure we wait long enough for a response:
-                cur_time = time.time()
-					
-                # Now see if they want to delete it...
+                time_start = time.time()
                 isDeleted = False
-                while (time.time() - cur_time < 5) and (isDeleted == False):
+                while (time.time() - time_start < 5) and isDeleted == False:
+                    # Display the image just taken...
+                    imagen = pygame.image.load(recordedImage[0])
+                    screen.blit(imagen, (0, 0))
+                    message = "Press button again to delete..."
+                    color = (255, 255, 255)
+                    greenscreenFn.setText(screen, font, message, color)
+                    
+                    # Sleep so we don't kill anything:
+                    time.sleep(0.005)
+                    
+                    # See if they hit the button:
                     if GPIO.input(controlPin) == False:
-                        # Change our control variable:
                         isDeleted = True
-                        # Tell them what's going on and do it:
-                        print "Deleting image from", pathFinal, 'and', pathUSB
-                        screen.fill((169, 169, 169))
-                        screen.blit(imagen, (0,0))
-                        message = "Deleting image..."
-                        color = (255,255,255)
-                        greenscreenFn.setText(screen, font, message, color)
-                        pygame.display.update()
-                        try:
-                            os.remove(pathFinal)
-                            os.remove(pathUSB)
-                        except:
-                            print "There was an error removing the image from", pathFinal, "or", pathUSB, " Please try to remove it yourself."
-                        time.sleep(1)
+                        paths = []
+                        for path in recordedImage[1:]:
+                            if path != None:
+                                paths.append(path)
+                        greenscreenFn.delImage(screen, font, recordedImage[0], paths)
 
         # Exit documentation program and take to homescreen when escape is hit:
         events = pygame.event.get()
