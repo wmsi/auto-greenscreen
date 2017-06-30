@@ -212,6 +212,12 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
                 
             # See if the button was hit, (again, it's a low-active pin, so False means it was triggered):
             if GPIO.input(controlPin) == False:
+                surface.blit(imagen, (0, 0))
+                message = "Restarting, please wait..."
+                color = (255, 255, 255)
+                setText(surface, font, message, color)
+                pygame.display.update()
+                time.sleep(3)
                 return None
             
             time.sleep(0.005)
@@ -223,7 +229,7 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
         
         # Initiate a time keeping var:
         time_start = time.time()
-        while (time.time() - time_start < 5) and shouldClose == True:
+        while (time.time() - time_start < 10) and shouldClose == True:
             # Take an image and display it in the upper right hand corner:
             imagen = webcam.get_image()
             surface.blit(imagen, (0, 0))
@@ -245,7 +251,8 @@ def getReferencePoints(surface, webcam, font, starFont, controlPin):
                 message = "Restarting, please wait..."
                 color = (255, 255, 255)
                 setText(surface, font, message, color)
-                time.sleep(5)
+                pygame.display.update()
+                time.sleep(3)
                 
             time.sleep(0.005)
     
@@ -299,9 +306,11 @@ def delImage(surface, font, pathOfficial, listOfPathOthers):
     surface.blit(imagen, (0, 0))
     message = "Deleting image..."
     color = (255, 255, 255)
+    pygame.display.update()
+    
     # We want to use the default value of font, so we have to do this:
     setText(surface, font, message, color)
-    for file in pathOthers:
+    for file in listOfPathOthers:
         try:
             os.remove(file)
         except:
