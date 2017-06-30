@@ -56,11 +56,8 @@ def getImage(i, threshold, webcam, surface, font, refPoints):
     # Display the images we just took...
     surface.blit(imagen, (0,0))
     message = "Saving and processing image, please wait..."
-    message = font.render(message, True, (72, 118, 255))
-    messagerect = message.get_rect()
-    messagerect.centerx = surface.get_rect().centerx
-    messagerect.centery = surface.get_rect().centery
-    surface.blit(message, messagerect)
+    color = (255, 255, 255)
+    setText(surface, font, message, color)
     pygame.display.update()
     
     # Now we can open the image with PIL, and convert it to RGBA AND HSV:
@@ -314,7 +311,7 @@ def delImage(surface, font, pathOfficial, listOfPathOthers):
     setText(surface, font, message, color)
     for file in listOfPathOthers:
         try:
-            print "Deleting photo from", file
+            print "Deleting image from", file
             os.remove(file)
         except:
             print "There was an error removing the file at", file
