@@ -264,7 +264,7 @@ Types:
     color is a tuple (R, G, B)
     location is a tuple (x, y)
 """
-def setText(surface, font = pygame.font.Font(None, 25), message, color, location = None):
+def setText(surface, font, message, color, location = None):
     # If they haven't provided a location, we'll assume they want it centered:
     if location == None:
         messageRendered = font.render(message, True, color)

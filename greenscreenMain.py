@@ -22,7 +22,6 @@ Hopefully it works! :D
 """
 
 import sys
-import os
 import pygame
 import pygame.camera
 import time
