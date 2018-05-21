@@ -7,6 +7,7 @@ See grnscrn.py for more details.
 
 import datetime
 import os
+import os.path
 from shutil import copy
 import time
 
@@ -15,9 +16,9 @@ from PIL import ImageFilter
 import pygame
 import pygame.camera
 import RPi.GPIO as GPIO
-import grnscrn_extractor as extract
 
-def img(i, threshold, webcam, surface, font, ref_points):
+
+def imager(webcam):
     """
     Takes an image, saves it in tmp, re-imports it into PIL so it
     can be processed; removes colors that fall within the specified range and
@@ -27,72 +28,71 @@ def img(i, threshold, webcam, surface, font, ref_points):
     This function returns only the location where it saved the final image AND
     where it saved the .PNG (/tmp/image.png).
     """
-    # Date-time strings for naming:
-    day = str(datetime.datetime.now().date()).replace(".", "_").\
-                                            replace(" ", "_").replace(":", "_")
-    minute = str(datetime.datetime.now().time()).replace(".", "_").\
-                                       replace(" ", "_").replace(":", "_")[0:4]
-
 
     # Capture and then save our image, so we can open it with PIL:
     imagen = webcam.get_image()
 
     # Alert to save, and save:
-    path_PNG = "/tmp/image.png"
-    path_JPG = "/tmp/image.jpg"
-    print "Saving tmp. image in", path_JPG
-    pygame.image.save(imagen, path_JPG)
+    name = time.strftime('%Y%m%d%H%M%S.jpg')
+    tmp_img = os.path.join('/tmp/', name)
+    print name
+    print tmp_img
+    print "Saving tmp. image in", tmp_img
+    pygame.image.save(imagen, tmp_img)
+
+    return tmp_img
+
+
+def process_img(tmp_img, surface, font, ref_points, threshold):
+    # Open image with PIL, and convert it to RGBA AND HSV:
+    img = Image.open(tmp_img).convert('RGBA')
+    img_HSV = img.convert("HSV")
 
     # Update screen:
-    surface.blit(imagen, (0, 0))
+    surface.blit(pygame.image.load(tmp_img), (0, 0))
     message = "Saving and processing image, please wait..."
     color = (255, 255, 255)
     disp_text(surface, font, message, color)
     pygame.display.update()
 
-    # Open image with PIL, and convert it to RGBA AND HSV:
-    jpg = Image.open(path_JPG).convert('RGBA')
-    jpg_HSV = jpg.convert("HSV")
-
     # Identify color of greenscreen:
-    green = mean_color(jpg_HSV, ref_points)
+    green = mean_color(img_HSV, ref_points)
 
-    # PROCESS IMAGE
+    # Process image
     H, S, V = green
-    pixdata = jpg.load()
-    for y in xrange(jpg.size[1]):
-        for x in xrange(jpg.size[0]):
-            r, g, b, a = jpg.getpixel((x, y))
-            h, s, v = jpg_HSV.getpixel((x, y))
+    pixdata = img.load()
+    for y in xrange(img.size[1]):
+        for x in xrange(img.size[0]):
+            r, g, b, a = img.getpixel((x, y))
+            h, s, v = img_HSV.getpixel((x, y))
             if (H - threshold <= h <= H + threshold):
                 pixdata[x, y] = (255, 255, 255, 0)
             # Remove anti-aliasing outline of body.
             if r == 0 and g == 0 and b == 0:
                 pixdata[x, y] = (255, 255, 255, 0)
-    imgOut = jpg.filter(ImageFilter.GaussianBlur(radius=1))
-    print "Saving tmp. image in", path_PNG
-    imgOut.save(path_PNG, "PNG")
+    img_out = img.filter(ImageFilter.GaussianBlur(radius=1))
+    print "Saving tmp. image in", tmp_img
+    img_out.save(tmp_img, "PNG")
 
-    # Copy image from /tmp/
-    name = "%(1)s_%(2)s_%(3)s.png" % {"1": day, "2": minute, "3" : i}
+    name = os.path.basename(tmp_img)
+    
     # Start defining some of the other names:
     pathLocal = os.path.join("/home/pi/Pictures/", name)
-    print "Copying image from", path_PNG, "to", pathLocal
-    copy(path_PNG, pathLocal)
+    print "Copying image from", tmp_img, "to", pathLocal
+    copy(tmp_img, pathLocal)
     # The below should be in a try block in case it fails:
     # We have to find the USB device, so:
     try:
         path_USB = os.path.join("/media/pi/", os.listdir("/media/pi")[0], name)
-        print "Copying image from", path_PNG, "to", path_USB
-        copy(path_PNG, path_USB)
+        print "Copying image from", tmp_img, "to", path_USB
+        copy(tmp_img, path_USB)
     except:
         print "There was an issue copying to USB."
-        return path_PNG, pathLocal, None
+        return tmp_img, pathLocal, None
 
     # Return exactly what/where we saved the file, so the user can delete
     # it if they want...
-    return path_PNG, pathLocal, path_USB
-
+    return pathLocal, path_USB
 
 def mean_color(PIL_HSV_image, ref_points):
     """
