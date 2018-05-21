@@ -76,12 +76,12 @@ def main():
         # Tell the person how to take a picture...
         message = "Press the button to take pictures!"
         color = (0, 0, 255)
-        control.setText(screen, font, message, color)
+        control.disp_text(screen, font, message, color)
         # Print stars where the script will try to detect the corners:
         star = "*"
         color = (255, 0, 0)
         for s in ref_points:
-            control.setText(screen, star_font, star, color, s)
+            control.disp_text(screen, star_font, star, color, s)
 
         # Update the display so stuff actually shows...
         pygame.display.update()
@@ -100,7 +100,7 @@ def main():
                 screen.blit(imagen, (0,0))
                 message = "Couldn't detect your greenscreen!"
                 color = (255, 0, 0)
-                control.setText(screen, font, message, color)
+                control.disp_text(screen, font, message, color)
                 # Update the display so stuff actually shows...
                 pygame.display.update()
                 time.sleep(3)
@@ -116,7 +116,7 @@ def main():
                     screen.blit(imagen, (0, 0))
                     message = "Press button again to delete..."
                     color = (255, 255, 255)
-                    control.setText(screen, font, message, color)
+                    control.disp_text(screen, font, message, color)
 
                     # Update the display:
                     pygame.display.update()
@@ -134,7 +134,7 @@ def main():
 
         # Exit documentation program and take to homescreen when escape is hit:
         events = pygame.event.get()
-        user_in = [k for k in events if k == 2 or k == 3]
+        user_in = [k for k in events if k.type == 2 or k.type == 3]
         for k in user_in:
             if k.dict['key'] == 27:
                 # Now that we know what keys were hit,
@@ -143,7 +143,7 @@ def main():
                 message = "Thanks for your pictures! Don't forget to upload n"\
                           "ew photos from thumb drive!"
                 color = (255,255,255)
-                control.setText(screen, font, message, color)
+                control.disp_text(screen, font, message, color)
                 pygame.display.update()
                 time.sleep(0.005)
 
