@@ -63,7 +63,7 @@ def main():
     if ref_points == None:
         # Generate a list so we can still use the rest of the program:
         ref_points = [(200, 100), (width-200, 100),
-                      (200, height-100), (width-100, height-100)]
+                      (200, height-100), (width-200, height-100)]
 
     # The main loop to display images:
     while True:

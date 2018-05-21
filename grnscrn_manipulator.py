@@ -158,7 +158,7 @@ def reference_points(surface, webcam, font, star_font, control_pin):
 
             # See if the button was hit, (again, it's a low-active pin, so
             # False means it was triggered):
-            if GPIO.input(control_pin) is False:
+            if GPIO.input(control_pin) == False:
                 surface.blit(imagen, (0, 0))
                 message = "Defaulting reference points and closing, please"\
                           "wait..."
@@ -191,7 +191,7 @@ def reference_points(surface, webcam, font, star_font, control_pin):
             time.sleep(0.005)
 
             # Check if they hit the button:
-            if GPIO.input(control_pin) is False:
+            if GPIO.input(control_pin) == False:
                 close = False # Need to reset from above
                 surface.blit(imagen, (0, 0))
                 message = "Restarting, please wait..."
