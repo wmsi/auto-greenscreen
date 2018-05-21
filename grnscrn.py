@@ -21,8 +21,7 @@ import pygame.camera
 import RPi.GPIO as GPIO
 import time
 
-
-import greenscreenFn # Import our own stuff
+import grnscrn_manipulator as control # Import our own stuff
 
 
 ############################
@@ -35,6 +34,10 @@ threshold = 20
 # CHANGE THE PIN HERE:
 controlPin = 16
 
+############################
+# CHANGE THE IMG SIZE HERE:
+width = 800
+height = 480
 
 def main():
     """
@@ -45,25 +48,22 @@ def main():
     GPIO.setup(controlPin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
     pygame.init() # Some pygame initilization...
     pygame.camera.init()
-    screen = pygame.display.set_mode((800, 480), pygame.FULLSCREEN) # Make disp
-    cam_list = pygame.camera.list_cameras() # Find, open and start cam...
-    webcam = pygame.camera.Camera(cam_list[0], (800,480))
+    screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+    webcam = pygame.camera.Camera(pygame.camera.list_cameras()[0],
+                                  (width, height))
     webcam.start()
     font = pygame.font.Font(None, 25) # A font to use...
-    stars = pygame.font.Font(None, 50) # Another font to use that's bigger...
+    star_font = pygame.font.Font(None, 50) # Another font to use that's bigger...
     i = 0 # A numerating value for the images...
 
     # Execute the function to allow the user to select different points:
-    refPoints = greenscreenFn.getReferencePoints(screen, webcam, font, stars,
-                                                 controlPin)
+    ref_points = control.reference_points(screen, webcam, font,
+                                                 star_font, controlPin)
     # If the user decided to use the default points:
-    if refPoints == None:
+    if ref_points == None:
         # Generate a list so we can still use the rest of the program:
-        refPoints = [(200, 100), (600, 100), (200, 380), (600, 380)]
-    refPoint1 = refPoints[0]
-    refPoint2 = refPoints[1]
-    refPoint3 = refPoints[2]
-    refPoint4 = refPoints[3]
+        ref_points = [(200, 100), (width-200, 100),
+                      (200, height-100), (width-100, height-100)]
 
     # The main loop to display images:
     while True:
@@ -73,37 +73,34 @@ def main():
         # Take an image and display it:
         imagen = webcam.get_image()
         screen.blit(imagen, (0,0))
-
         # Tell the person how to take a picture...
         message = "Press the button to take pictures!"
         color = (0, 0, 255)
-        greenscreenFn.setText(screen, font, message, color)
-
+        control.setText(screen, font, message, color)
         # Print stars where the script will try to detect the corners:
         star = "*"
         color = (255, 0, 0)
-        greenscreenFn.setText(screen, stars, star, color, refPoint1)
-        greenscreenFn.setText(screen, stars, star, color, refPoint2)
-        greenscreenFn.setText(screen, stars, star, color, refPoint3)
-        greenscreenFn.setText(screen, stars, star, color, refPoint4)
+        for s in ref_points:
+            control.setText(screen, star_font, star, color, s)
 
         # Update the display so stuff actually shows...
         pygame.display.update()
+        time.sleep(0.005)
 
         # Big pushbutton to take picture:
         if GPIO.input(controlPin) == False:
             # Pressed button so capture an image and numerate the numerator:
-            recordedImage = greenscreenFn.getImage(i, threshold, webcam, screen, font, refPoints)
-            i += 1
+            img = control.img(i, threshold, webcam, screen, font, ref_points)
+            i += 1 # Numerate numerator
 
-            # We have to process what recordImage returned so let's look at it:
-            if recordedImage == None:
+            # Look at image:
+            if img == None:
                 # Can't detect green on screen:
                 imagen = webcam.get_image()
                 screen.blit(imagen, (0,0))
                 message = "Couldn't detect your greenscreen!"
                 color = (255, 0, 0)
-                greenscreenFn.setText(screen, font, message, color)
+                control.setText(screen, font, message, color)
                 # Update the display so stuff actually shows...
                 pygame.display.update()
                 time.sleep(3)
@@ -115,46 +112,40 @@ def main():
                 while (time.time() - time_start < 5) and isDeleted == False:
                     screen.fill((169, 169, 169))
                     # Display the image just taken...
-                    imagen = pygame.image.load(recordedImage[0])
+                    imagen = pygame.image.load(img[0])
                     screen.blit(imagen, (0, 0))
                     message = "Press button again to delete..."
                     color = (255, 255, 255)
-                    greenscreenFn.setText(screen, font, message, color)
+                    control.setText(screen, font, message, color)
 
                     # Update the display:
                     pygame.display.update()
-
-                    # Sleep so we don't kill anything:
                     time.sleep(0.005)
 
                     # See if they hit the button:
                     if GPIO.input(controlPin) == False:
                         isDeleted = True
                         paths = []
-                        for path in recordedImage[1:]:
-                            if path != None:
+                        for path in img[1:]:
+                            if path is not None:
                                 paths.append(path)
-                        greenscreenFn.delImage(screen, font, recordedImage[0],
-                                               paths)
+                        control.rm_img(screen, font, img[0], paths)
                         time.sleep(5)
 
         # Exit documentation program and take to homescreen when escape is hit:
         events = pygame.event.get()
-        keyboardInteractions = []
-        for key in events:
-            if key.type == 2 or key.type == 3:
-                keyboardInteractions.append(key)
-
-        for keyHit in keyboardInteractions:
-            if keyHit.dict['key'] == 27:
+        user_in = [k for k in events if k == 2 or k == 3]
+        for k in user_in:
+            if k.dict['key'] == 27:
                 # Now that we know what keys were hit,
                 # we can initiate an if statement:
                 screen.fill((0, 0, 0))
                 message = "Thanks for your pictures! Don't forget to upload n"\
                           "ew photos from thumb drive!"
                 color = (255,255,255)
-                greenscreenFn.setText(screen, font, message, color)
+                control.setText(screen, font, message, color)
                 pygame.display.update()
+                time.sleep(0.005)
 
                 # Wait 4 seconds and then terminate everything, release
                 # resources and quit...
@@ -162,9 +153,6 @@ def main():
                 webcam.stop()
                 pygame.quit()
                 break
-
-        time.sleep(0.005) # Sleep to slow down iteration
-    return # We've somehow exited the loop, so we can exit...
 
 
 if __name__ == '__main__': # Execute if not imported
