@@ -51,7 +51,7 @@ def img(i, threshold, webcam, surface, font, ref_points):
     pygame.display.update()
 
     # Open image with PIL, and convert it to RGBA AND HSV:
-    jpg = Image.open(path_JPG)
+    jpg = Image.open(path_JPG).convert('RGBA')
     jpg_HSV = jpg.convert("HSV")
 
     # Identify color of greenscreen:
@@ -174,7 +174,7 @@ def reference_points(surface, webcam, font, star_font, control_pin):
 
         # Now have the user verify their chosen points:
         time_start = time.time()
-        wait_time = 10.
+        wait_time = 5.
         while (time.time() - time_start < wait_time) and close is True:
             # Update display:
             imagen = webcam.get_image()
