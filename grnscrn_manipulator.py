@@ -17,6 +17,8 @@ import pygame
 import pygame.camera
 import RPi.GPIO as GPIO
 
+from grnscrn_attrs import *
+
 
 def imager(webcam):
     """
@@ -33,10 +35,8 @@ def imager(webcam):
     imagen = webcam.get_image()
 
     # Alert to save, and save:
-    name = time.strftime('%Y%m%d%H%M%S.jpg')
+    name = time.strftime('%Y%m%d%H%M%S_{}.jpg'.format(time.time()))
     tmp_img = os.path.join('/tmp/', name)
-    print name
-    print tmp_img
     print "Saving tmp. image in", tmp_img
     pygame.image.save(imagen, tmp_img)
 
@@ -51,8 +51,7 @@ def process_img(tmp_img, surface, font, ref_points, threshold):
     # Update screen:
     surface.blit(pygame.image.load(tmp_img), (0, 0))
     message = "Saving and processing image, please wait..."
-    color = (255, 255, 255)
-    disp_text(surface, font, message, color)
+    disp_text(surface, font, message, blue)
     pygame.display.update()
 
     # Identify color of greenscreen:
@@ -139,13 +138,14 @@ def reference_points(surface, webcam, font, star_font, control_pin):
             # Tell the user what to do:
             message = "Choose 4 points that are green for reference, or press"\
                       " button to cancel."
-            color = (0, 0, 255)
-            disp_text(surface, font, message, color)
+            disp_text(surface, font, message, blue)
+            disp_text(surface, font, 'Press button to default reference points...',
+                      blue, (width/2, height-50))
 
             # Display all chosen points so far:
             if star_locs:
                 for p in star_locs:
-                    disp_text(surface, star_font, '*', (255, 0, 0), p)
+                    disp_text(surface, star_font, '*', red, p)
             pygame.display.update()
 
             # Now we can get events and see if anything has happened:
@@ -161,11 +161,12 @@ def reference_points(surface, webcam, font, star_font, control_pin):
             if GPIO.input(control_pin) == False:
                 surface.blit(imagen, (0, 0))
                 message = "Defaulting reference points and closing, please"\
-                          "wait..."
-                color = (255, 255, 255)
-                disp_text(surface, font, message, color)
+                          " wait..."
+                disp_text(surface, font, message, red)
                 pygame.display.update()
-                time.sleep(3)
+                while GPIO.input(controlPin) == False:
+                    time.sleep(0.1)
+                time.sleep(0.1)
                 return None
 
             time.sleep(0.005)
@@ -180,8 +181,7 @@ def reference_points(surface, webcam, font, star_font, control_pin):
             imagen = webcam.get_image()
             surface.blit(imagen, (0, 0))
             message = "Verify chosen points; press button to reselect."
-            color = (0, 0, 255)
-            disp_text(surface, font, message, color)
+            disp_text(surface, font, message, blue)
 
             # Display each point:
             for s in star_locs:
@@ -192,13 +192,14 @@ def reference_points(surface, webcam, font, star_font, control_pin):
 
             # Check if they hit the button:
             if GPIO.input(control_pin) == False:
-                close = False # Need to reset from above
                 surface.blit(imagen, (0, 0))
                 message = "Restarting, please wait..."
-                color = (255, 255, 255)
-                disp_text(surface, font, message, color)
+                disp_text(surface, font, message, red)
                 pygame.display.update()
-                time.sleep(3)
+                while GPIO.input(control_pin) == False:
+                    time.sleep(0.1)
+                close = False # Need to reset from above
+                time.sleep(0.1)
 
     # The while loop terminated because shouldClose == True:
     return star_locs
@@ -243,16 +244,14 @@ def rm_img(surface, font, pathOfficial, listOfPathOthers):
     (what getImage returns) and a list of strings indicating where the
     images are saved.
     """
-    surface.fill((169, 169, 169))
+    surface.fill(grey)
     imagen = pygame.image.load(pathOfficial)
     surface.blit(imagen, (0, 0))
     message = "Deleting image..."
-    color = (255, 255, 255)
-    disp_text(surface, font, message, color)
+    disp_text(surface, font, message, red)
     pygame.display.update()
 
     # We want to use the default value of font, so we have to do this:
-    disp_text(surface, font, message, color)
     for f in listOfPathOthers:
         try:
             print "Deleting image from", f
