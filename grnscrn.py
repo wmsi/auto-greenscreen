@@ -65,8 +65,9 @@ def main():
         control.disp_text(screen, font, message, blue)
         message = 'Images in batch: {0}'.format(len(batch))
         control.disp_text(screen, font, message, blue, (100, 50))
-        message = 'Press R to reset reference points...'
-        control.disp_text(screen, font, message, blue, (width/2, height-25))
+        if (time.time() - t_last_reset > 10):
+            message = 'Press R to reset reference points...'
+            control.disp_text(screen, font, message, blue, (width/2, height-25))
         message = 'Press SPACE to process batch...'
         control.disp_text(screen, font, message, blue, (width/2, height-50))
         # Print stars where the script will try to detect the corners:
